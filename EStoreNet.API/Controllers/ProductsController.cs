@@ -1,8 +1,6 @@
-﻿using EStoreNet.Core.Entitites;
-using EStoreNet.Infrastructure.Context;
-using Microsoft.AspNetCore.Http;
+﻿using EStoreNet.Core.Abstract;
+using EStoreNet.Core.Entitites;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace EStoreNet.API.Controllers
 {
@@ -10,30 +8,24 @@ namespace EStoreNet.API.Controllers
     [ApiController]
     public class ProductsController : ControllerBase
     {
-        private readonly StoreContext context;
-
-        public ProductsController(StoreContext context)
+        private readonly IProductRepository productRepository;
+        public ProductsController(IProductRepository productRepository)
         {
-            this.context = context;
+            this.productRepository = productRepository;
         }
 
         [HttpGet]
         public async Task<ActionResult<List<Product>>> GetProducts()
         {
-            return await context.Products.ToListAsync();
+            var products = await productRepository.GetProductsAsync();
+            return Ok(products);
         }
         [HttpGet("{id}")]
         public async Task<ActionResult<Product>> GetProduct(int id)
         {
-            return await context.Products.FindAsync(id);
+            return await productRepository.GetProductByIdAsync(id);
         }
 
-        [HttpPost]
-        public async Task<ActionResult> CreateProduct(Product product)
-        {
-            context.Products.Add(product);
-            await context.SaveChangesAsync();
-            return Ok();
-        }
+       
     }
 }

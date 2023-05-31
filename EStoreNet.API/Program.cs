@@ -1,4 +1,7 @@
+using EStoreNet.Core.Abstract;
+using EStoreNet.Infrastructure.Concrete;
 using EStoreNet.Infrastructure.Context;
+using EStoreNet.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,8 +17,24 @@ builder.Services.AddDbContext<StoreContext>(opt =>
     opt.UseSqlite("Data Source=store.db");
 });
 
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+
 var app = builder.Build();
 
+using var scope = app.Services.CreateScope();
+var services = scope.ServiceProvider;
+var context = services.GetRequiredService<StoreContext>();
+var logger = services.GetRequiredService<ILogger<Program>>();
+try
+{
+    await context.Database.MigrateAsync();
+    await StoreContextSeed.SeedAsync(context);
+}
+catch (Exception ex)
+{
+
+    logger.LogError(ex, "An error occured during migration.");
+}
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
