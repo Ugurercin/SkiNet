@@ -10,7 +10,8 @@ namespace EStoreNet.API.Helpers
         {
             CreateMap<Product, ProductToReturnDto>()
                 .ForMember(d => d.productBrand, o => o.MapFrom(s => s.productBrand.Name))
-                .ForMember(d => d.ProductType, o => o.MapFrom(s => s.ProductType.Name));
+                .ForMember(d => d.ProductType, o => o.MapFrom(s => s.ProductType.Name))
+                .ForMember(p => p.PictureUrl, o => o.MapFrom<ProductUrlResolver>());
 
 
         }
