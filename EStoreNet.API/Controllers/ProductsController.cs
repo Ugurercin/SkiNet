@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using EStoreNet.API.DTOs;
+using EStoreNet.API.Errors;
 using EStoreNet.Core.Abstract;
 using EStoreNet.Core.Entitites;
 using EStoreNet.Core.Specifications;
@@ -7,9 +8,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace EStoreNet.API.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class ProductsController : ControllerBase
+
+    public class ProductsController : BaseApiController
     {
         private readonly IGenericRepository<Product> productsRepo;
         private readonly IGenericRepository<ProductBrand> productBrandRepo;
@@ -34,12 +34,16 @@ namespace EStoreNet.API.Controllers
             return Ok(mapper.Map<IReadOnlyList<Product>, IReadOnlyList<ProductToReturnDto>>(products));
         }
         [HttpGet("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse),StatusCodes.Status404NotFound)]
         public async Task<ActionResult<ProductToReturnDto>> GetProduct(int id)
         {
             var specification = new ProductsWithTypesAndBrandsSpecification(id);
-            var products =  await productsRepo.GetEntityWithSpec(specification);
+            var product =  await productsRepo.GetEntityWithSpec(specification);
 
-            return mapper.Map<Product, ProductToReturnDto>(products);
+            if (product == null) return NotFound(new ApiResponse(404));
+
+            return mapper.Map<Product, ProductToReturnDto>(product);
         }
         [HttpGet("brands")]
         public async Task<ActionResult<List<ProductBrand>>> GetProductBrands()
